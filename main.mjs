@@ -94,7 +94,6 @@ const ollamaClient = new ollama.Ollama({ host: ollamaHost });
 // --- Global Chat State ---
 /** チャット履歴 @type {{ sender: string, text: string }[]} */
 const chatHistory = [];
-let isChatting = false;
 let turnCount = 0;
 const MAX_TURNS = 10; // Limit the number of turns to prevent infinite loops
 /** チャット間隔時間（ミリ秒） */
@@ -158,9 +157,8 @@ const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
  * @param {number} currentAgentIndex Indicates which agent's turn it is (1 or 2).
  */
 const autoChat = async (currentAgentIndex) => {
-	if (!isChatting || turnCount >= MAX_TURNS) {
+	if (turnCount >= MAX_TURNS) {
 		console.log(`\n\n--- Chat Finished (Reached ${MAX_TURNS} turns) ---`);
-		isChatting = false;
 		return;
 	}
 
@@ -191,35 +189,28 @@ const autoChat = async (currentAgentIndex) => {
 };
 
 // --- Start the Chat ---
-const startChat = async () => {
-	isChatting = true;
+// Populate chatHistory with initialMessages
+for (const msg of initialMessages) {
+	chatHistory.push({ sender: msg.name, text: msg.message });
+	console.log(`\x1b[1m${msg.name}:\x1b[0m ${msg.message}`); // Print initial messages
+}
 
-	// Populate chatHistory with initialMessages
-	for (const msg of initialMessages) {
-		chatHistory.push({ sender: msg.name, text: msg.message });
-		console.log(`\x1b[1m${msg.name}:\x1b[0m ${msg.message}`); // Print initial messages
-	}
+// Determine who speaks next based on the last message in initialMessages
+const lastInitialMessageSender =
+	initialMessages[initialMessages.length - 1].name;
+let nextAgentIndex;
 
-	// Determine who speaks next based on the last message in initialMessages
-	const lastInitialMessageSender =
-		initialMessages[initialMessages.length - 1].name;
-	let nextAgentIndex;
+if (lastInitialMessageSender === agent1Name) {
+	nextAgentIndex = 2; // If agent 1 spoke last, agent 2 speaks next
+} else if (lastInitialMessageSender === agent2Name) {
+	nextAgentIndex = 1; // If agent 2 spoke last, agent 1 speaks next
+} else {
+	// If the last initial message was from someone other than agent1 or agent2,
+	// we can default to agent1 starting the conversation.
+	console.log(
+		`\n(Last initial message was from '${lastInitialMessageSender}'. ${agent1Name} will start.)`,
+	);
+	nextAgentIndex = 1;
+}
 
-	if (lastInitialMessageSender === agent1Name) {
-		nextAgentIndex = 2; // If agent 1 spoke last, agent 2 speaks next
-	} else if (lastInitialMessageSender === agent2Name) {
-		nextAgentIndex = 1; // If agent 2 spoke last, agent 1 speaks next
-	} else {
-		// If the last initial message was from someone other than agent1 or agent2,
-		// we can default to agent1 starting the conversation.
-		console.log(
-			`\n(Last initial message was from '${lastInitialMessageSender}'. ${agent1Name} will start.)`,
-		);
-		nextAgentIndex = 1;
-	}
-
-	setTimeout(() => autoChat(nextAgentIndex), CHAT_INTERVAL); // Start with the determined agent
-};
-
-// Initiate the chat when the script runs
-startChat();
+autoChat(nextAgentIndex);
