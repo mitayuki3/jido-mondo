@@ -7,11 +7,11 @@ Ollama API to generate responses for each agent.
 Settings (agent names, system prompts, initial messages list, Ollama host, and model)
 are loaded from a JSON file. By default, it looks for 'settings.json' in the same directory.
 
-Usage: node chat-cli.js [path/to/your/settings.json]
+Usage: node main.mjs [path/to/your/settings.json]
 
 Example:
-node chat-cli.js // Will try to load from 'settings.json'
-node chat-cli.js ./my-config/chat-settings.json // Loads from a specified path
+node main.mjs // Will try to load from 'settings.json'
+node main.mjs ./my-config/chat-settings.json // Loads from a specified path
 
 IMPORTANT: You need to have Ollama installed and running, and a model downloaded.
 For example, to run the llama2 model:
