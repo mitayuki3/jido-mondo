@@ -86,7 +86,8 @@ console.log("Using Ollama Keep-alive:", ollamaKeepAlive);
 console.log("------------------------\n");
 
 // --- Global Chat State ---
-const chatHistory = []; // Stores messages in the format: { sender: string, text: string }
+/** チャット履歴 @type {{ sender: string, text: string }[]} */
+const chatHistory = [];
 let isChatting = false;
 let turnCount = 0;
 const MAX_TURNS = 10; // Limit the number of turns to prevent infinite loops
