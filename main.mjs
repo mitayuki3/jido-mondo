@@ -107,7 +107,7 @@ const ollamaClient = new ollama.Ollama({ host: ollamaHost });
 
 // --- Global Chat State ---
 /** チャット履歴 @type {MessageList} */
-const chatHistory = [];
+const chatHistory = [...initialMessages];
 let turnCount = 0;
 const MAX_TURNS = 10; // Limit the number of turns to prevent infinite loops
 /** チャット間隔時間（ミリ秒） */
@@ -203,26 +203,24 @@ const autoChat = async (currentAgentIndex) => {
 };
 
 // --- Start the Chat ---
-// Populate chatHistory with initialMessages
-for (const msg of initialMessages) {
-	chatHistory.push({ name: msg.name, message: msg.message });
-	console.log(`\x1b[1m${msg.name}:\x1b[0m ${msg.message}`); // Print initial messages
+for (const msg of chatHistory) {
+	// Print initial messages
+	console.log(`\x1b[1m${msg.name}:\x1b[0m ${msg.message}`);
 }
 
-// Determine who speaks next based on the last message in initialMessages
-const lastInitialMessageSender =
-	initialMessages[initialMessages.length - 1].name;
+// Determine who speaks next
+const lastSenderName = chatHistory[chatHistory.length - 1].name;
 let nextAgentIndex;
 
-if (lastInitialMessageSender === agent1Name) {
+if (lastSenderName === agent1Name) {
 	nextAgentIndex = 2; // If agent 1 spoke last, agent 2 speaks next
-} else if (lastInitialMessageSender === agent2Name) {
+} else if (lastSenderName === agent2Name) {
 	nextAgentIndex = 1; // If agent 2 spoke last, agent 1 speaks next
 } else {
 	// If the last initial message was from someone other than agent1 or agent2,
 	// we can default to agent1 starting the conversation.
 	console.log(
-		`\n(Last initial message was from '${lastInitialMessageSender}'. ${agent1Name} will start.)`,
+		`\n(Last initial message was from '${lastSenderName}'. ${agent1Name} will start.)`,
 	);
 	nextAgentIndex = 1;
 }
