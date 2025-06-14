@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      ollama:
+        specifier: ^0.5.16
+        version: 0.5.16
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.4
@@ -67,6 +71,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  ollama@0.5.16:
+    resolution: {integrity: sha512-OEbxxOIUZtdZgOaTPAULo051F5y+Z1vosxEYOoABPnQKeW7i4O8tJNlxCB+xioyoorVqgjkdj+TA1f1Hy2ug/w==}
+
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
+
 snapshots:
 
   '@biomejs/biome@1.9.4':
@@ -103,3 +113,9 @@ snapshots:
 
   '@biomejs/cli-win32-x64@1.9.4':
     optional: true
+
+  ollama@0.5.16:
+    dependencies:
+      whatwg-fetch: 3.6.20
+
+  whatwg-fetch@3.6.20: {}
