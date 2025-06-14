@@ -85,6 +85,12 @@ console.log("Using Ollama Model:", ollamaModel);
 console.log("Using Ollama Keep-alive:", ollamaKeepAlive);
 console.log("------------------------\n");
 
+/**
+ * グローバルな Ollama クライアントインスタンス
+ * @type {ollama.Ollama}
+ */
+const ollamaClient = new ollama.Ollama({ host: ollamaHost });
+
 // --- Global Chat State ---
 /** チャット履歴 @type {{ sender: string, text: string }[]} */
 const chatHistory = [];
@@ -109,7 +115,7 @@ const simulateTyping = (agentName) => {
  */
 const sendMessageToAgent = async (prompt, history, systemPrompt) => {
 	try {
-		const client = new ollama.Ollama({ host: ollamaHost });
+		const client = ollamaClient;
 		const messagesForOllama = [];
 
 		if (systemPrompt) {
