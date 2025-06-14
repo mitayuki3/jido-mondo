@@ -129,10 +129,11 @@ const simulateTyping = (agentName) => {
 const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
 	try {
 		const client = ollamaClient;
-		const messagesForOllama = [];
+		/** @type ollama.Message[] */
+		const messages = [];
 
 		if (systemPrompt) {
-			messagesForOllama.push({ role: "system", content: systemPrompt });
+			messages.push({ role: "system", content: systemPrompt });
 		}
 
 		// Add previous chat history messages, dynamically determining role
@@ -140,13 +141,13 @@ const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
 			// If the name of a historical message is the current agent, treat it as 'assistant'
 			// Otherwise, treat it as 'user'
 			const role = msg.name === currentAgent ? "assistant" : "user";
-			messagesForOllama.push({ role: role, content: msg.message });
+			messages.push({ role: role, content: msg.message });
 		}
 
 		const response = await client.chat({
 			model: ollamaModel,
 			keep_alive: ollamaKeepAlive,
-			messages: messagesForOllama,
+			messages,
 		});
 
 		return (
