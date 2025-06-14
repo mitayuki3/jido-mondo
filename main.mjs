@@ -3,13 +3,27 @@ import path from "node:path";
 import * as ollama from "ollama";
 
 // --- Load Settings from JSON File ---
+/** エージェント1の名前 @type {string} */
 let agent1Name;
+/** エージェント2の名前 @type {string} */
 let agent2Name;
+/** エージェント1のシステムプロンプト @type {string} */
 let agent1System;
+/** エージェント2のシステムプロンプト @type {string} */
 let agent2System;
+/**
+ * @typedef Message
+ * @property {string} name
+ * @property {string} message
+ */
+/** @typedef {Message[]} MessageList  */
+/** 初期メッセージの配列 @type MessageList */
 let initialMessages;
+/** OllamaサーバーのホストURL @type {string} */
 let ollamaHost;
+/** 使用するOllamaモデル名 @type {string} */
 let ollamaModel;
+/** Ollamaのキープアライブ設定 @type {string | number} */
 let ollamaKeepAlive;
 
 const settingsFilePath = process.argv[2] || "settings.json"; // Default to 'settings.json'
@@ -92,7 +106,7 @@ console.log("------------------------\n");
 const ollamaClient = new ollama.Ollama({ host: ollamaHost });
 
 // --- Global Chat State ---
-/** チャット履歴 @type {{ sender: string, text: string }[]} */
+/** チャット履歴 @type {MessageList} */
 const chatHistory = [];
 let turnCount = 0;
 const MAX_TURNS = 10; // Limit the number of turns to prevent infinite loops
@@ -107,7 +121,7 @@ const simulateTyping = (agentName) => {
 // --- Function to Call Ollama API ---
 /**
  * Sends a message to the Ollama API and returns the generated text.
- * @param {Array<Object>} history The array of previous chat messages for context.
+ * @param {MessageList} history The array of previous chat messages for context.
  * @param {string} currentAgent The name of the current agent.
  * @param {string} systemPrompt The system prompt specific to the current agent.
  * @returns {Promise<string>} The generated response text.
@@ -123,10 +137,10 @@ const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
 
 		// Add previous chat history messages, dynamically determining role
 		for (const msg of history) {
-			// If the sender of a historical message is the current agent, treat it as 'assistant'
+			// If the name of a historical message is the current agent, treat it as 'assistant'
 			// Otherwise, treat it as 'user'
-			const role = msg.sender === currentAgent ? "assistant" : "user";
-			messagesForOllama.push({ role: role, content: msg.text });
+			const role = msg.name === currentAgent ? "assistant" : "user";
+			messagesForOllama.push({ role: role, content: msg.message });
 		}
 
 		const response = await client.chat({
@@ -179,7 +193,7 @@ const autoChat = async (currentAgentIndex) => {
 	process.stdout.clearLine(0);
 	process.stdout.cursorTo(0);
 
-	chatHistory.push({ sender: currentAgent, text: responseText });
+	chatHistory.push({ name: currentAgent, message: responseText });
 
 	console.log(`\n\x1b[1m${currentAgent}:\x1b[0m ${responseText}`);
 
@@ -191,7 +205,7 @@ const autoChat = async (currentAgentIndex) => {
 // --- Start the Chat ---
 // Populate chatHistory with initialMessages
 for (const msg of initialMessages) {
-	chatHistory.push({ sender: msg.name, text: msg.message });
+	chatHistory.push({ name: msg.name, message: msg.message });
 	console.log(`\x1b[1m${msg.name}:\x1b[0m ${msg.message}`); // Print initial messages
 }
 
