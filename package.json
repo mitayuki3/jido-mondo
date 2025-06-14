@@ -5,7 +5,7 @@
   "type": "module",
   "main": "main.mjs",
   "scripts": {
-    "run": "node main.mjs",
+    "cli": "node main.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
