@@ -25,6 +25,12 @@ let ollamaHost;
 let ollamaModel;
 /** Ollamaのキープアライブ設定 @type {string | number} */
 let ollamaKeepAlive;
+/** 最大ターン数 @type {number} */
+let maxTurns;
+/** Ollama の温度設定（創造性） @type {number} */
+let temperature;
+/** Ollamaの繰り返しペナルティ設定 @type {number} */
+let repeatPenalty;
 
 const settingsFilePath = process.argv[2] || "settings.json"; // Default to 'settings.json'
 
@@ -43,6 +49,9 @@ try {
 	ollamaHost = settings.ollamaHost || "http://localhost:11434";
 	ollamaModel = settings.ollamaModel || "llama2";
 	ollamaKeepAlive = settings.ollamaKeepAlive ?? undefined;
+	maxTurns = settings.maxTurns || 20;
+	temperature = settings.temperature ?? undefined;
+	repeatPenalty = settings.repeatPenalty ?? undefined;
 } catch (error) {
 	console.error("\nError loading or parsing settings file:", settingsFilePath);
 	console.error(
@@ -97,6 +106,8 @@ console.log(
 console.log("Using Ollama Host:", ollamaHost);
 console.log("Using Ollama Model:", ollamaModel);
 console.log("Using Ollama Keep-alive:", ollamaKeepAlive);
+console.log("Using Ollama Temperature:", temperature);
+console.log("Using Ollama Repeat Penalty:", repeatPenalty);
 console.log("------------------------\n");
 
 /**
@@ -109,7 +120,7 @@ const ollamaClient = new ollama.Ollama({ host: ollamaHost });
 /** チャット履歴 @type {MessageList} */
 const chatHistory = [...initialMessages];
 let turnCount = 0;
-const MAX_TURNS = 10; // Limit the number of turns to prevent infinite loops
+const MAX_TURNS = maxTurns; // Limit the number of turns to prevent infinite loops
 /** チャット間隔時間（ミリ秒） */
 const CHAT_INTERVAL = 1000;
 
@@ -148,6 +159,10 @@ const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
 			model: ollamaModel,
 			keep_alive: ollamaKeepAlive,
 			messages,
+			options: {
+				...(temperature !== undefined && { temperature }),
+				...(repeatPenalty !== undefined && { repeat_penalty: repeatPenalty }),
+			},
 		});
 
 		return (
