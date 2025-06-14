@@ -27,6 +27,8 @@ let ollamaModel;
 let ollamaKeepAlive;
 /** 最大ターン数 @type {number} */
 let maxTurns;
+/** チャットの最大長さ（システムプロンプトを含む） @type {number} */
+let chatMaxLength;
 /** Ollama の温度設定（創造性） @type {number} */
 let temperature;
 /** Ollamaの繰り返しペナルティ設定 @type {number} */
@@ -50,6 +52,7 @@ try {
 	ollamaModel = settings.ollamaModel || "llama2";
 	ollamaKeepAlive = settings.ollamaKeepAlive ?? undefined;
 	maxTurns = settings.maxTurns || 20;
+	chatMaxLength = settings.chatMaxLength || 20;
 	temperature = settings.temperature ?? undefined;
 	repeatPenalty = settings.repeatPenalty ?? undefined;
 } catch (error) {
@@ -108,6 +111,7 @@ console.log("Using Ollama Model:", ollamaModel);
 console.log("Using Ollama Keep-alive:", ollamaKeepAlive);
 console.log("Using Ollama Temperature:", temperature);
 console.log("Using Ollama Repeat Penalty:", repeatPenalty);
+console.log("Using Chat Max Length:", chatMaxLength);
 console.log("------------------------\n");
 
 /**
@@ -126,7 +130,20 @@ const CHAT_INTERVAL = 1000;
 
 // --- Helper Function: Simulate Typing Delay ---
 const simulateTyping = (agentName) => {
-	process.stdout.write(`\n[${agentName} is thinking...]`);
+	process.stdout.write(`[${agentName} is thinking...]`);
+};
+
+/**
+ * チャット履歴を最大長さに基づいてトリムする
+ * @param {MessageList} history チャット履歴
+ * @param {number} maxLength 最大長さ
+ * @returns {MessageList} トリムされた履歴
+ */
+const trimChatHistory = (history, maxLength) => {
+	if (history.length <= maxLength) {
+		return history;
+	}
+	return history.slice(history.length - maxLength);
 };
 
 // --- Function to Call Ollama API ---
@@ -147,8 +164,11 @@ const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
 			messages.push({ role: "system", content: systemPrompt });
 		}
 
+		// チャット履歴をトリム
+		const trimmedHistory = trimChatHistory(history, chatMaxLength - (systemPrompt ? 1 : 0));
+
 		// Add previous chat history messages, dynamically determining role
-		for (const msg of history) {
+		for (const msg of trimmedHistory) {
 			// If the name of a historical message is the current agent, treat it as 'assistant'
 			// Otherwise, treat it as 'user'
 			const role = msg.name === currentAgent ? "assistant" : "user";
@@ -166,7 +186,7 @@ const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
 		});
 
 		return (
-			response?.message?.content ??
+			response?.message?.content?.trim() ??
 			"No valid content received from the Ollama model."
 		);
 	} catch (error) {
@@ -211,7 +231,7 @@ const autoChat = async (currentAgentIndex) => {
 
 	chatHistory.push({ name: currentAgent, message: responseText });
 
-	console.log(`\n\x1b[1m${currentAgent}:\x1b[0m ${responseText}`);
+	console.log(`\x1b[1m${currentAgent}:\x1b[0m ${responseText}`);
 
 	setTimeout(() => {
 		autoChat(currentAgentIndex === 1 ? 2 : 1);
