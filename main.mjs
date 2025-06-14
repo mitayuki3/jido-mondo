@@ -91,6 +91,8 @@ const chatHistory = [];
 let isChatting = false;
 let turnCount = 0;
 const MAX_TURNS = 10; // Limit the number of turns to prevent infinite loops
+/** チャット間隔時間（ミリ秒） */
+const CHAT_INTERVAL = 1000;
 
 // --- Helper Function: Simulate Typing Delay ---
 const simulateTyping = (agentName) => {
@@ -195,7 +197,7 @@ const autoChat = async (currentAgentIndex) => {
 
 	setTimeout(() => {
 		autoChat(currentAgentIndex === 1 ? 2 : 1);
-	}, 2500);
+	}, CHAT_INTERVAL);
 };
 
 // --- Start the Chat ---
@@ -226,7 +228,7 @@ const startChat = async () => {
 		nextAgentIndex = 1;
 	}
 
-	setTimeout(() => autoChat(nextAgentIndex), 1000); // Start with the determined agent
+	setTimeout(() => autoChat(nextAgentIndex), CHAT_INTERVAL); // Start with the determined agent
 };
 
 // Initiate the chat when the script runs
