@@ -208,7 +208,7 @@ const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
  */
 const autoChat = async (currentAgentIndex) => {
 	if (turnCount >= MAX_TURNS) {
-		console.log(`\n\n--- Chat Finished (Reached ${MAX_TURNS} turns) ---`);
+		console.log(`\n--- Chat Finished (Reached ${MAX_TURNS} turns) ---`);
 		return;
 	}
 
