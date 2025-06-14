@@ -10,6 +10,7 @@ let agent2System;
 let initialMessages;
 let ollamaHost;
 let ollamaModel;
+let ollamaKeepAlive;
 
 const settingsFilePath = process.argv[2] || "settings.json"; // Default to 'settings.json'
 
@@ -27,6 +28,7 @@ try {
 	initialMessages = settings.initialMessages; // Load as array
 	ollamaHost = settings.ollamaHost || "http://localhost:11434";
 	ollamaModel = settings.ollamaModel || "llama2";
+	ollamaKeepAlive = settings.ollamaKeepAlive ?? undefined;
 } catch (error) {
 	console.error("\nError loading or parsing settings file:", settingsFilePath);
 	console.error(
@@ -80,6 +82,7 @@ console.log(
 );
 console.log("Using Ollama Host:", ollamaHost);
 console.log("Using Ollama Model:", ollamaModel);
+console.log("Using Ollama Keep-alive:", ollamaKeepAlive);
 console.log("------------------------\n");
 
 // --- Global Chat State ---
@@ -126,6 +129,7 @@ const sendMessageToAgent = async (prompt, history, systemPrompt) => {
 
 		const response = await client.chat({
 			model: ollamaModel,
+			keep_alive: ollamaKeepAlive,
 			messages: messagesForOllama,
 		});
 
