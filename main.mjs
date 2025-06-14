@@ -107,13 +107,13 @@ const simulateTyping = (agentName) => {
 
 // --- Function to Call Ollama API ---
 /**
- * Sends a prompt to the Ollama API and returns the generated text.
- * @param {string} prompt The current prompt for the agent.
+ * Sends a message to the Ollama API and returns the generated text.
  * @param {Array<Object>} history The array of previous chat messages for context.
+ * @param {string} currentAgent The name of the current agent.
  * @param {string} systemPrompt The system prompt specific to the current agent.
  * @returns {Promise<string>} The generated response text.
  */
-const sendMessageToAgent = async (prompt, history, systemPrompt) => {
+const sendMessageToAgent = async (history, currentAgent, systemPrompt) => {
 	try {
 		const client = ollamaClient;
 		const messagesForOllama = [];
@@ -124,17 +124,11 @@ const sendMessageToAgent = async (prompt, history, systemPrompt) => {
 
 		// Add previous chat history messages, dynamically determining role
 		for (const msg of history) {
-			// If the sender of a historical message is one of our agents, treat it as 'assistant'
-			// Otherwise (e.g., "Human Operator" or "Marisa"), treat it as 'user'
-			const role =
-				msg.sender === agent1Name || msg.sender === agent2Name
-					? "assistant"
-					: "user";
+			// If the sender of a historical message is the current agent, treat it as 'assistant'
+			// Otherwise, treat it as 'user'
+			const role = msg.sender === currentAgent ? "assistant" : "user";
 			messagesForOllama.push({ role: role, content: msg.text });
 		}
-
-		// Add the current prompt as the latest user message
-		messagesForOllama.push({ role: "user", content: prompt });
 
 		const response = await client.chat({
 			model: ollamaModel,
@@ -173,24 +167,14 @@ const autoChat = async (currentAgentIndex) => {
 	turnCount++;
 
 	const currentAgent = currentAgentIndex === 1 ? agent1Name : agent2Name;
-	const otherAgent = currentAgentIndex === 1 ? agent2Name : agent1Name;
 	const currentAgentSystemPrompt =
 		currentAgentIndex === 1 ? agent1System : agent2System;
-
-	// Get the last message from the combined initial messages and ongoing chat history
-	const lastMessage =
-		chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].text : ""; // Should not be empty after initialization
-	const lastSender =
-		chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].sender : "";
-
-	// Determine the prompt for the current agent.
-	const promptForAgent = `${lastSender} just said: "${lastMessage}".\n\n${currentAgent}, what is your response?`;
 
 	simulateTyping(currentAgent);
 
 	const responseText = await sendMessageToAgent(
-		promptForAgent,
 		chatHistory,
+		currentAgent,
 		currentAgentSystemPrompt,
 	);
 
